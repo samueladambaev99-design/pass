@@ -6,7 +6,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from app.users.models import User, TelegramLinkCode
-from app.users.serializers import RegisterSerializers, UserProfileSerializers, TokenObtainPairSerializer
+from app.users.serializers import (
+    RegisterSerializers,
+    UserProfileSerializers,
+    TokenObtainPairSerializer,
+    ResetPasswordRequestSerializer,
+    VerifyCodeSerializer,
+    SetNewPasswordSerializer
+)
 
 class RegisterAPI(mixins.CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
@@ -31,3 +38,25 @@ class TelegramLinkCodeView(APIView):
 
 class CustomToken(TokenObtainPairView):
     serializer_class = TokenObtainPairSerializer
+
+class ResetPasswordRequestView(APIView):
+    def post(self, request):
+        serializer = ResetPasswordRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Код отправлен"})
+
+
+class VerifyCodeView(APIView):
+    def post(self, request):
+        serializer = VerifyCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({"message": "Код подтвержден"})
+
+
+class SetNewPasswordView(APIView):
+    def post(self, request):
+        serializer = SetNewPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Пароль изменен"})

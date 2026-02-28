@@ -1,6 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 import secrets
+from django.utils import timezone
+from datetime import timedelta
+import random
+
 
 class UserRole(models.TextChoices):
     CUSTOMER = "customer", "Обычный пользователь"
@@ -74,3 +78,22 @@ class TelegramLinkCode(models.Model):
     @staticmethod
     def generate_code() -> str:
         return str(secrets.randbelow(900000) + 100000)
+    
+class PasswordResetCode(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="password_reset_codes"
+    )
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(minutes=10)
+
+    @staticmethod
+    def generate_code():
+        return str(random.randint(100000, 999999))
+
+    def __str__(self):
+        return f"{self.user.email} - {self.code}"
